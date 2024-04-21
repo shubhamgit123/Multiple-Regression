@@ -1,0 +1,120 @@
+---
+title: "Social Media"
+author: "Shubham Bhargava"
+date: "2024-03-25"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(dplyr)
+library(FactoMineR)
+library(factoextra)
+
+social_media <- read_excel("social_media_cleaned.xlsx")
+  
+  
+#### Multiple Regression Analysis
+  
+```{r}
+library(dplyr)
+library(readxl)
+library(car)
+library(ggplot2)
+library(GGally)
+
+social_media <- read_excel("social_media_cleaned.xlsx")
+social_media_numeric <- select_if(social_media, is.numeric)
+```
+
+#### Model Development
+```{r}
+model <- lm(social_media_numeric$Trouble_falling_asleep  ~ social_media_numeric$Instagram + social_media_numeric$LinkedIn + social_media_numeric$SnapChat + social_media_numeric$Twitter + social_media_numeric$`Whatsapp/Wechat` + social_media_numeric$youtube + social_media_numeric$OTT + social_media_numeric$Reddit,
+            data = social_media_numeric
+)
+summary(model)
+```
+<p> In this phase, I used the lm() method to fit a multiple regression model after loading the dataset. How did you feel during the entire week, according to the model? depending on a number of predictive factors, including Reddit acceleration, Instagram, LinkedIn, SnapChat, Twitter, Whatsapp, Youtube, and OTT.</p>
+  
+  <p>We examine the relevant t- and p-values for each coefficient to determine its statistical significance. A predictor variable may be statistically important in explaining the variability in sleep problems if it has a low p-value, which is often less than 0.05. Put more simply, it indicates that there is a good chance that the variable actually affects sleep problems.</p>
+  
+  
+#### Model Acceptance
+  
+```{r}
+coefficients(model)
+confint(model,level=0.95)
+fitted(model)
+```
+
+
+#### Residual Analysis
+```{r}
+library(car)
+residuals(model)
+anova(model)
+plot(model)
+
+avPlots(model)
+
+cutoff <- 17/((nrow(social_media)-length(model$coefficients)-2))
+plot(model, which=4, cook.levels=cutoff)
+influencePlot(model, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
+qqPlot(model, main="QQ Plot")
+```
+```{r}
+ggpairs(data=social_media_numeric, title="Social Media")
+
+ggplot(social_media_numeric, aes(x = fitted(model), y = residuals(model))) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Residuals vs Fitted Values", x = "Fitted Values", y = "Residuals")
+
+```
+<p>One method for assessing a regression model's assumptions and suitability is the residual vs. fitted graphic. It is useful in determining whether the model accurately depicts the underlying relationships in the data or whether there are problems that require attention. Plotting a pattern of points around zero indicates that the model is inappropriate.</p>
+  
+#### Prediction
+  <p>The predict() function will generate predicted values of the dependent variable (Trouble_falling_asleep) based on the provided predictors.</p>
+```{r}
+new_data_pd <- data.frame(
+  character = "masinl",
+  Instagram = 3.50,
+  LinkedIn = 4.00,
+  SnapChat = 1.00,
+  Twitter = 5.00,
+  `Whatsapp/Wechat` = 1.00,
+  youtube = 2.50,
+  OTT = 14.50,
+  Reddit = 2.50,
+  Trouble_falling_asleep = 0,
+  Mood = 1,
+  Productivity = 0,
+  Tired_waking_up_in_morning = 3,
+  `How you felt the entire week?` = 3
+)
+
+predicted_pd <- predict(model, newdata = new_data_pd)
+predicted_pd
+summary(predicted_pd)
+```
+
+#### Model Accuracy
+
+```{r}
+rsquared <- summary(model)$r.squared
+cat("R-squared:", rsquared, "\n")
+adjusted_rsquared <- summary(model)$adj.r.squared
+cat("Adjusted R-squared:", adjusted_rsquared, "\n")
+predictions <- predict(model)
+rmse <- sqrt(mean((social_media$Instagram - predictions)^2))
+cat("RMSE:", rmse, "\n")
+
+```
+
+
+  
+  
+  

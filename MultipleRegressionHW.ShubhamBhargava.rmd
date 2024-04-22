@@ -1,0 +1,92 @@
+---
+title: "Homework 7"
+author: "Shubham Bhargava"
+date: "2024-02-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Assignment 7
+### Multiple Regression Analysis
+<p>Multiple regression analysis is a statistical technique that extends simple linear regression by considering the combined effect of two or more independent variables on a single dependent variable.It facilitates our understanding of how these independent variables affect the dependent variable, forecasts the dependent variable's value based on the independent variables, and allows us to weigh the relative significance of each independent variable in light of the influences of the others. This makes it a potent tool for predicting outcomes and identifying links in a variety of sectors, including social science, business, and finance.</p>
+
+#### Model Development
+
+<p>The data will be loaded and transformed into numerical form. The data will be divided into training and testing sets. after which a multiple regression model will be run.</p>
+
+#### Model Acceptance 
+<p>Assessing the multiple regression model's performance on test datasets or unseen data is necessary for model acceptance.</p>
+<p>By using confidence intervals, diagnostic charts, and coefficient summaries, it assesses the performance of the model. In general, it looks at how well the model fits the data and how important the predictor variables are in order to evaluate the model's acceptability.</p>
+
+#### Residual Analysis
+<p>Residual analysis is crucial for evaluating the assumptions of the multiple regression model and identifying any patterns or trends in the residuals</p>
+
+<p>It will provide a scale-location plot, a QQ plot of residuals, and a plot of residuals vs. fitted values, among other diagnostic plots. These charts can assist you in evaluating the multiple regression model's assumptions.</p>
+
+```{r}
+library(readxl)
+library(dplyr)
+
+mydata <- read_excel("News Website Dataset_2.xlsx")
+data_num <- mydata[, c("Avg_Session_Duration", "Total_Sessions", "Total_revenue","Conversion_Rate")]
+```
+#### Model Development
+```{r}
+model <- lm(Total_revenue ~ Total_Sessions
++ Conversion_Rate + Avg_Session_Duration, data = mydata)
+model_fit <- summary(model)
+print(model_fit)
+```
+<p>In this stage, we used the lm() method to fit a multiple regression model after loading the dataset. Based on the Total Sessions, Conversion Rate, and Average Session Length, the model forecasts the Total Revenue.</p>
+
+#### Model Acceptance
+```{r}
+coefficients(model_fit)
+confint(model_fit,level=0.95)
+fitted(model_fit)
+```
+#### Residual Analysis
+```{r}
+library(GGally)
+ggpairs(data=mydata, title="News Website Data")
+plot(model)
+residuals(model_fit)
+```
+
+<p>One method for assessing a regression model's assumptions and suitability is the residual vs. fitted graphic. It is useful in determining whether the model accurately depicts the underlying relationships in the data or whether there are problems that require attention. Plotting a pattern of points around zero indicates that the model is inappropriate.</p>
+
+#### Prediction
+<p>The predict() function will generate predicted values of the dependent variable (Total_revenue) based on the provided predictors.</p>
+```{r}
+new_data <- data.frame(Time_of_Day = "Morning",
+                       Traffic_Source = "Organic Search",
+                       Landing_Page = "/blog/new-product",
+                       Campaign = "SEO Campaign",
+                       Content_Category = "Blog",
+                       Device_Category = "Desktop",
+                       Avg_Session_Duration = 4.23,
+                       Total_Sessions = 325,
+                       Conversion_Rate = 0.35)
+
+# Make predictions
+predicted_total_revenue <- predict(model, newdata = new_data)
+predicted_total_revenue
+```
+##### Model Accuracy
+<p>Model accuracy can be assessed using various metrics, such as R-squared, adjusted R-squared, and root mean squared error (RMSE). Here's how you can calculate these metrics</p>
+```{r}
+#Model Accuracy
+rsquared <- summary(model)$r.squared
+cat("R-squared:", rsquared, "\n")
+adjusted_rsquared <- summary(model)$adj.r.squared
+cat("Adjusted R-squared:", adjusted_rsquared, "\n")
+predictions <- predict(model)
+rmse <- sqrt(mean((mydata$Total_revenue - predictions)^2))
+cat("RMSE:", rmse, "\n")
+```
+
+
+
